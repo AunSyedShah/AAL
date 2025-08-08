@@ -1,0 +1,422 @@
+@page
+@model AAL.Web.Pages.ReportsModel
+@{
+    ViewData["Title"] = "Advanced Reports & Analytics";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">📊 Advanced Reports & Analytics</h1>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="exportReport('sales')">
+                        📥 Export Sales
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="exportReport('inventory')">
+                        📦 Export Inventory
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="exportReport('financial')">
+                        💰 Export Financial
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Query Parameters Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🔍 Query Parameters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="dateFrom" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="@Model.DateFrom?.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateTo" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="dateTo" name="dateTo" value="@Model.DateTo?.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="customerRating" class="form-label">Customer Rating</label>
+                            <select class="form-select" id="customerRating" name="customerRating">
+                                <option value="">All Ratings</option>
+                                <option value="Regular" selected="@(Model.CustomerRating == "Regular")">Regular</option>
+                                <option value="Silver" selected="@(Model.CustomerRating == "Silver")">Silver</option>
+                                <option value="Gold" selected="@(Model.CustomerRating == "Gold")">Gold</option>
+                                <option value="Platinum" selected="@(Model.CustomerRating == "Platinum")">Platinum</option>
+                                <option value="VIP" selected="@(Model.CustomerRating == "VIP")">VIP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="warehouseId" class="form-label">Warehouse</label>
+                            <select class="form-select" id="warehouseId" name="warehouseId">
+                                <option value="">All Warehouses</option>
+                                @foreach (var warehouse in Model.AvailableWarehouses)
+                                {
+                                    <option value="@warehouse.WarehouseId" selected="@(Model.WarehouseId == warehouse.WarehouseId)">
+                                        @warehouse.Name (@warehouse.Location)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">🔍 Generate Reports</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetFilters()">🔄 Reset Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Analytics -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📈 Sales Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">💰 Financial Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-12 mb-3">
+                            <h3 class="text-success">$@Model.TotalRevenue.ToString("N2")</h3>
+                            <small class="text-muted">Total Revenue</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-primary">$@Model.PaidAmount.ToString("N2")</h5>
+                            <small class="text-muted">Paid</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-warning">$@Model.OutstandingAmount.ToString("N2")</h5>
+                            <small class="text-muted">Outstanding</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">👥 Customer Rating Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="customerChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📦 Inventory Movement Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Fast Moving</th>
+                                    <th>Slow Moving</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in Model.InventoryMovementReport)
+                                {
+                                    <tr>
+                                        <td><strong>@category.Category</strong></td>
+                                        <td><span class="badge bg-success">@category.FastMoving</span></td>
+                                        <td><span class="badge bg-warning">@category.SlowMoving</span></td>
+                                        <td><span class="badge bg-primary">@category.Total</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performing Products -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🏆 Top Performing Products</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Total Orders</th>
+                                    <th>Total Quantity</th>
+                                    <th>Revenue</th>
+                                    <th>Movement Type</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.TopProducts.Count; i++)
+                                {
+                                    var product = Model.TopProducts[i];
+                                    <tr>
+                                        <td>
+                                            @if (i == 0) { <span class="badge bg-warning">🥇</span> }
+                                            else if (i == 1) { <span class="badge bg-secondary">🥈</span> }
+                                            else if (i == 2) { <span class="badge bg-dark">🥉</span> }
+                                            else { <span class="badge bg-light text-dark">#@(i + 1)</span> }
+                                        </td>
+                                        <td><strong>@product.ProductName</strong></td>
+                                        <td>@product.Category</td>
+                                        <td><span class="badge bg-primary">@product.TotalOrders</span></td>
+                                        <td><span class="badge bg-info">@product.TotalQuantity</span></td>
+                                        <td><strong>$@product.Revenue.ToString("N2")</strong></td>
+                                        <td>
+                                            @if (product.MovementType == "Fast")
+                                            {
+                                                <span class="badge bg-success">🚀 Fast</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">🐌 Slow</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" style="width: @product.PerformancePercentage%">
+                                                    @product.PerformancePercentage%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Material Rejections Analysis -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">❌ Material Rejections Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.TotalRejections</h4>
+                                    <small>Total Rejections</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>$@Model.RejectionCost.ToString("N2")</h4>
+                                    <small>Cost Impact</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.RejectionRate.ToString("P2")</h4>
+                                    <small>Rejection Rate</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.QualityScore.ToString("F1")</h4>
+                                    <small>Quality Score</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Rejection ID</th>
+                                    <th>Product</th>
+                                    <th>Supplier</th>
+                                    <th>Reason</th>
+                                    <th>Quantity</th>
+                                    <th>Cost</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action Required</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var rejection in Model.MaterialRejections)
+                                {
+                                    <tr>
+                                        <td><code>REJ-@rejection.RejectionId.ToString("D6")</code></td>
+                                        <td><strong>@(rejection.Product?.Name ?? "Unknown")</strong></td>
+                                        <td>Unknown Supplier</td>
+                                        <td>
+                                            <span class="badge bg-danger">@rejection.Reason</span>
+                                        </td>
+                                        <td>@rejection.QuantityRejected</td>
+                                        <td><strong>$@((rejection.CostImpact ?? 0).ToString("N2"))</strong></td>
+                                        <td>@rejection.RejectionDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            @switch (rejection.Status)
+                                            {
+                                                case AAL.Web.Models.RejectionStatus.Reported:
+                                                    <span class="badge bg-warning">Reported</span>
+                                                    break;
+                                                case AAL.Web.Models.RejectionStatus.UnderInvestigation:
+                                                    <span class="badge bg-info">Under Investigation</span>
+                                                    break;
+                                                case AAL.Web.Models.RejectionStatus.Resolved:
+                                                    <span class="badge bg-success">Resolved</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">Unknown</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (rejection.Status != AAL.Web.Models.RejectionStatus.Resolved)
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary" onclick="updateRejectionStatus(@rejection.RejectionId)">
+                                                    Update Status
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-success">✅ Complete</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Sales Chart
+const salesCtx = document.getElementById('salesChart').getContext('2d');
+new Chart(salesCtx, {
+    type: 'line',
+    data: {
+        labels: @Html.Raw(Json.Serialize(Model.SalesChartLabels)),
+        datasets: [{
+            label: 'Sales Revenue',
+            data: @Html.Raw(Json.Serialize(Model.SalesChartData)),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value, index, values) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Customer Rating Chart
+const customerCtx = document.getElementById('customerChart').getContext('2d');
+new Chart(customerCtx, {
+    type: 'doughnut',
+    data: {
+        labels: @Html.Raw(Json.Serialize(Model.CustomerRatingLabels)),
+        datasets: [{
+            data: @Html.Raw(Json.Serialize(Model.CustomerRatingData)),
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+function exportReport(type) {
+    const url = `/api/reports/export?type=${type}&dateFrom=${document.getElementById('dateFrom').value}&dateTo=${document.getElementById('dateTo').value}`;
+    window.open(url, '_blank');
+}
+
+function resetFilters() {
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    document.getElementById('customerRating').value = '';
+    document.getElementById('warehouseId').value = '';
+}
+
+function updateRejectionStatus(rejectionId) {
+    // Implementation for updating rejection status
+    fetch(`/api/rejections/${rejectionId}/status`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'UnderInvestigation' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>

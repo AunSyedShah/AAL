@@ -1,0 +1,478 @@
+@page
+@model AAL.Web.Pages.ServerStatusModel
+@{
+    ViewData["Title"] = "Multi-Server Architecture Status";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">🏭 Multi-Server Architecture Status</h1>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success" onclick="refreshStatus()">
+                        🔄 Refresh Status
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="syncData()">
+                        🔄 Sync Data
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="testConnections()">
+                        🔧 Test Connections
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Architecture Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🏗️ System Architecture Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h4>1</h4>
+                                    <small>Main Server</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-success">🟢 Online</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h4>4</h4>
+                                    <small>Manufacturing Plants</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-success">🟢 @Model.OnlineManufacturingPlants</span>
+                                        <span class="badge bg-danger">🔴 @Model.OfflineManufacturingPlants</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h4>4</h4>
+                                    <small>Warehouse Servers</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-light text-success">🟢 @Model.OnlineWarehouses</span>
+                                        <span class="badge bg-danger">🔴 @Model.OfflineWarehouses</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h4>@Model.ConnectedClients</h4>
+                                    <small>Connected Clients</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-light text-dark">Active Sessions</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manufacturing Plants Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🏭 Manufacturing Plants Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Plant ID</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Capacity Utilization</th>
+                                    <th>Current Production</th>
+                                    <th>Last Sync</th>
+                                    <th>Connection Quality</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var plant in Model.ManufacturingPlants)
+                                {
+                                    <tr>
+                                        <td><strong>@plant.PlantId</strong></td>
+                                        <td>@plant.Location</td>
+                                        <td>
+                                            @if (plant.IsOnline)
+                                            {
+                                                <span class="badge bg-success">🟢 Online</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">🔴 Offline</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar @(plant.CapacityUtilization > 80 ? "bg-danger" : plant.CapacityUtilization > 60 ? "bg-warning" : "bg-success")" 
+                                                     style="width: @plant.CapacityUtilization%">
+                                                    @plant.CapacityUtilization%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@plant.CurrentProduction units</td>
+                                        <td>@plant.LastSync.ToString("HH:mm:ss")</td>
+                                        <td>
+                                            @switch (plant.ConnectionQuality)
+                                            {
+                                                case "Excellent":
+                                                    <span class="badge bg-success">📶 Excellent</span>
+                                                    break;
+                                                case "Good":
+                                                    <span class="badge bg-primary">📶 Good</span>
+                                                    break;
+                                                case "Fair":
+                                                    <span class="badge bg-warning">📶 Fair</span>
+                                                    break;
+                                                case "Poor":
+                                                    <span class="badge bg-danger">📶 Poor</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" onclick="syncPlant('@plant.PlantId')">
+                                                    🔄 Sync
+                                                </button>
+                                                <button class="btn btn-outline-info" onclick="viewPlantDetails('@plant.PlantId')">
+                                                    👁️ Details
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warehouse Servers Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📦 Warehouse Servers Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Warehouse ID</th>
+                                    <th>Name</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Storage Utilization</th>
+                                    <th>Active Inventory Items</th>
+                                    <th>Last Data Sync</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var warehouse in Model.WarehouseServers)
+                                {
+                                    <tr>
+                                        <td><strong>WH-@warehouse.WarehouseId</strong></td>
+                                        <td>@warehouse.Name</td>
+                                        <td>@warehouse.Location</td>
+                                        <td>
+                                            @if (warehouse.IsOnline)
+                                            {
+                                                <span class="badge bg-success">🟢 Online</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">🔴 Offline</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar @(warehouse.StorageUtilization > 90 ? "bg-danger" : warehouse.StorageUtilization > 70 ? "bg-warning" : "bg-success")" 
+                                                     style="width: @warehouse.StorageUtilization%">
+                                                    @warehouse.StorageUtilization%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@warehouse.ActiveInventoryItems items</td>
+                                        <td>@warehouse.LastDataSync.ToString("HH:mm:ss")</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-success" onclick="syncWarehouse(@warehouse.WarehouseId)">
+                                                    🔄 Sync
+                                                </button>
+                                                <button class="btn btn-outline-primary" onclick="viewInventory(@warehouse.WarehouseId)">
+                                                    📦 Inventory
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Synchronization Status -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🔄 Data Synchronization Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        @foreach (var sync in Model.SyncStatus)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@sync.Operation</strong>
+                                    <br>
+                                    <small class="text-muted">@sync.Description</small>
+                                </div>
+                                <div>
+                                    @if (sync.IsSuccessful)
+                                    {
+                                        <span class="badge bg-success">✅ Success</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">❌ Failed</span>
+                                    }
+                                    <br>
+                                    <small class="text-muted">@sync.LastSync.ToString("HH:mm:ss")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.AverageResponseTime ms</h4>
+                                    <small>Avg Response Time</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.SystemUptime.ToString("P2")</h4>
+                                    <small>System Uptime</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.DataTransferRate MB/s</h4>
+                                    <small>Data Transfer Rate</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>@Model.SyncFrequency sec</h4>
+                                    <small>Sync Frequency</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Topology -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🌐 Network Topology</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="text-center">
+                                <div class="network-diagram">
+                                    <!-- Main Server -->
+                                    <div class="server-node main-server">
+                                        <div class="server-icon">🖥️</div>
+                                        <div>Main Server</div>
+                                        <small>AAL-MAIN-01</small>
+                                    </div>
+                                    
+                                    <!-- Manufacturing Plants -->
+                                    <div class="plant-nodes">
+                                        @for (int i = 0; i < 4; i++)
+                                        {
+                                            <div class="server-node plant-node">
+                                                <div class="server-icon">🏭</div>
+                                                <div>Plant @(i + 1)</div>
+                                                <small>@Model.ManufacturingPlants[i].Location</small>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <!-- Warehouse Servers -->
+                                    <div class="warehouse-nodes">
+                                        @for (int i = 0; i < 4; i++)
+                                        {
+                                            <div class="server-node warehouse-node">
+                                                <div class="server-icon">📦</div>
+                                                <div>Warehouse @(i + 1)</div>
+                                                <small>@Model.WarehouseServers[i].Location</small>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.network-diagram {
+    position: relative;
+    padding: 40px;
+}
+
+.server-node {
+    display: inline-block;
+    text-align: center;
+    margin: 20px;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    min-width: 120px;
+}
+
+.main-server {
+    border-color: #007bff;
+    background: #e7f3ff;
+}
+
+.plant-node {
+    border-color: #17a2b8;
+    background: #e1f7fa;
+}
+
+.warehouse-node {
+    border-color: #28a745;
+    background: #e8f5e8;
+}
+
+.server-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.plant-nodes, .warehouse-nodes {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+</style>
+
+<script>
+function refreshStatus() {
+    location.reload();
+}
+
+function syncData() {
+    fetch('/api/servers/sync-all', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Data synchronization initiated successfully');
+                location.reload();
+            } else {
+                alert('❌ Synchronization failed: ' + data.message);
+            }
+        });
+}
+
+function testConnections() {
+    fetch('/api/servers/test-connections', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            alert(`Connection Test Results:\n✅ Successful: ${data.successful}\n❌ Failed: ${data.failed}`);
+        });
+}
+
+function syncPlant(plantId) {
+    fetch(`/api/servers/plants/${plantId}/sync`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ Plant ${plantId} synchronized successfully`);
+                location.reload();
+            }
+        });
+}
+
+function syncWarehouse(warehouseId) {
+    fetch(`/api/servers/warehouses/${warehouseId}/sync`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ Warehouse ${warehouseId} synchronized successfully`);
+                location.reload();
+            }
+        });
+}
+
+function viewPlantDetails(plantId) {
+    window.open(`/Production/Status?plantId=${plantId}`, '_blank');
+}
+
+function viewInventory(warehouseId) {
+    window.open(`/Inventory?warehouseId=${warehouseId}`, '_blank');
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshStatus, 30000);
+</script>

@@ -1,0 +1,238 @@
+@page
+@model ProductionStatusModel
+@{
+    ViewData["Title"] = "Production Status - AAL";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>🏭 Production Status</h2>
+            <div>
+                <button class="btn btn-outline-secondary" onclick="refreshStatus()">
+                    <i class="fas fa-refresh"></i> Refresh
+                </button>
+                <span class="text-muted ms-2">Last updated: @DateTime.Now.ToString("MMM dd, yyyy HH:mm")</span>
+            </div>
+        </div>
+
+        <!-- Production Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@Model.ActiveProducts</h3>
+                        <p class="mb-0">Active Products</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@Model.InProductionCount</h3>
+                        <p class="mb-0">In Production</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">@Model.PendingProductionCount</h3>
+                        <p class="mb-0">Pending Production</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">@Model.ProductionCapacity%</h3>
+                        <p class="mb-0">Capacity Utilization</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manufacturing Plants Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>🏢 Manufacturing Plants Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var plant in Model.ManufacturingPlants)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6>@plant.Name</h6>
+                                        <span class="badge bg-@(plant.IsOperational ? "success" : "danger")">
+                                            @(plant.IsOperational ? "Operational" : "Offline")
+                                        </span>
+                                    </div>
+                                    <p class="text-muted mb-1">@plant.Location</p>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar" role="progressbar" style="width: @plant.CurrentCapacity%">
+                                            @plant.CurrentCapacity% Capacity
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Current Orders: @plant.ActiveOrders</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Production Status -->
+        <div class="card">
+            <div class="card-header">
+                <h5>📦 Product Production Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Production Status</th>
+                                <th>Current Stock</th>
+                                <th>In Production</th>
+                                <th>Estimated Completion</th>
+                                <th>Priority Orders</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var status in Model.ProductionStatus)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@status.Product.Name</strong>
+                                        <br><small class="text-muted">@status.Product.SKU</small>
+                                    </td>
+                                    <td>@status.Product.Category</td>
+                                    <td>
+                                        <span class="badge bg-@(status.Status switch {
+                                            ProductionStatus.InProduction => "success",
+                                            ProductionStatus.Scheduled => "info",
+                                            ProductionStatus.Delayed => "warning",
+                                            ProductionStatus.OnHold => "danger",
+                                            _ => "secondary"
+                                        })">
+                                            @status.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @status.CurrentStock
+                                        @if (status.CurrentStock <= status.Product.InventoryItems.Sum(i => i.ReorderPoint))
+                                        {
+                                            <span class="badge bg-warning ms-1">Low</span>
+                                        }
+                                    </td>
+                                    <td>@status.QuantityInProduction</td>
+                                    <td>
+                                        @if (status.EstimatedCompletion.HasValue)
+                                        {
+                                            @status.EstimatedCompletion.Value.ToString("MMM dd, yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not scheduled</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (status.PriorityOrders > 0)
+                                        {
+                                            <span class="badge bg-danger">@status.PriorityOrders Urgent</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">None</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewProductionDetails(@status.ProductId)">
+                                                Details
+                                            </button>
+                                            @if (User.IsInRole("Admin") || User.IsInRole("ProductionManager"))
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="scheduleProduction(@status.ProductId)">
+                                                    Schedule
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Production Details Modal -->
+<div class="modal fade" id="productionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Production Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="productionDetailsContent">
+                <!-- Content loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshStatus() {
+            location.reload();
+        }
+
+        function viewProductionDetails(productId) {
+            fetch(`/api/production/details/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('productionDetailsContent').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Production Timeline</h6>
+                                <ul class="list-group">
+                                    ${data.timeline.map(item => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            ${item.stage}
+                                            <span class="badge bg-${item.status === 'Completed' ? 'success' : item.status === 'In Progress' ? 'primary' : 'secondary'}">${item.status}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Quality Metrics</h6>
+                                <p><strong>Defect Rate:</strong> ${data.defectRate}%</p>
+                                <p><strong>On-Time Delivery:</strong> ${data.onTimeDelivery}%</p>
+                                <p><strong>Production Efficiency:</strong> ${data.efficiency}%</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    new bootstrap.Modal(document.getElementById('productionDetailsModal')).show();
+                })
+                .catch(error => {
+                    alert('Error loading production details');
+                });
+        }
+
+        function scheduleProduction(productId) {
+            // Redirect to production scheduling page
+            window.location.href = `/Production/Schedule?productId=${productId}`;
+        }
+    </script>
+}

@@ -1,0 +1,216 @@
+@page
+@model CreateOrderModel
+@{
+    ViewData["Title"] = "Create Order - AAL";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Create New Order</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Order.CustomerId" class="form-label">Customer</label>
+                                <select asp-for="Order.CustomerId" class="form-select" asp-items="Model.CustomerSelectList" required>
+                                    <option value="">Select Customer</option>
+                                </select>
+                                <span asp-validation-for="Order.CustomerId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Order.WarehouseId" class="form-label">Warehouse</label>
+                                <select asp-for="Order.WarehouseId" class="form-select" asp-items="Model.WarehouseSelectList" required>
+                                    <option value="">Select Warehouse</option>
+                                </select>
+                                <span asp-validation-for="Order.WarehouseId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Order.Priority" class="form-label">Priority</label>
+                                <select asp-for="Order.Priority" class="form-select" asp-items="Html.GetEnumSelectList<OrderPriority>()">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Order.RequiredDate" class="form-label">Required Date</label>
+                                <input asp-for="Order.RequiredDate" type="date" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Order.SpecialInstructions" class="form-label">Special Instructions</label>
+                        <textarea asp-for="Order.SpecialInstructions" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Order Items</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOrderItem()">Add Item</button>
+                        </div>
+                        
+                        <div id="orderItems">
+                            <div class="order-item-row border p-3 mb-2" data-index="0">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <select name="OrderItems[0].ProductId" class="form-select product-select" onchange="updateProductInfo(0)" required>
+                                            <option value="">Select Product</option>
+                                            @foreach (var product in Model.Products)
+                                            {
+                                                <option value="@product.ProductId" data-price="@product.Price" data-stock="@product.InventoryItems.Sum(i => i.QuantityInStock)">
+                                                    @product.Name - $@product.Price.ToString("N2")
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input name="OrderItems[0].Quantity" type="number" class="form-control quantity-input" placeholder="Qty" min="1" onchange="calculateTotal(0)" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input name="OrderItems[0].UnitPrice" type="number" class="form-control price-input" placeholder="Price" step="0.01" readonly />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input name="OrderItems[0].TotalPrice" type="number" class="form-control total-input" placeholder="Total" step="0.01" readonly />
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeOrderItem(0)">×</button>
+                                    </div>
+                                </div>
+                                <small class="text-muted stock-info" id="stockInfo0"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Order Total:</strong>
+                                        <strong id="grandTotal">$0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Create Order</button>
+                        <a href="/Orders" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6>Order Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li>✓ Select customer first to check credit limit</li>
+                    <li>✓ Choose appropriate warehouse for delivery</li>
+                    <li>✓ Set priority based on customer requirements</li>
+                    <li>✓ Verify stock availability before ordering</li>
+                    <li>✓ Include special delivery instructions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let itemIndex = 1;
+
+        function addOrderItem() {
+            const container = document.getElementById('orderItems');
+            const newItem = document.querySelector('.order-item-row').cloneNode(true);
+            
+            newItem.dataset.index = itemIndex;
+            newItem.querySelectorAll('select, input').forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    input.setAttribute('name', name.replace('[0]', `[${itemIndex}]`));
+                }
+                input.value = '';
+            });
+            
+            const stockInfo = newItem.querySelector('.stock-info');
+            stockInfo.id = `stockInfo${itemIndex}`;
+            stockInfo.textContent = '';
+            
+            const removeBtn = newItem.querySelector('button');
+            removeBtn.setAttribute('onclick', `removeOrderItem(${itemIndex})`);
+            
+            container.appendChild(newItem);
+            itemIndex++;
+        }
+
+        function removeOrderItem(index) {
+            const item = document.querySelector(`[data-index="${index}"]`);
+            if (item && document.querySelectorAll('.order-item-row').length > 1) {
+                item.remove();
+                calculateGrandTotal();
+            }
+        }
+
+        function updateProductInfo(index) {
+            const select = document.querySelector(`[data-index="${index}"] .product-select`);
+            const option = select.selectedOptions[0];
+            const priceInput = document.querySelector(`[data-index="${index}"] .price-input`);
+            const stockInfo = document.getElementById(`stockInfo${index}`);
+            
+            if (option && option.value) {
+                const price = option.dataset.price;
+                const stock = option.dataset.stock;
+                priceInput.value = price;
+                stockInfo.textContent = `Available stock: ${stock} units`;
+                
+                calculateTotal(index);
+            } else {
+                priceInput.value = '';
+                stockInfo.textContent = '';
+            }
+        }
+
+        function calculateTotal(index) {
+            const row = document.querySelector(`[data-index="${index}"]`);
+            const quantity = row.querySelector('.quantity-input').value;
+            const price = row.querySelector('.price-input').value;
+            const totalInput = row.querySelector('.total-input');
+            
+            if (quantity && price) {
+                const total = parseFloat(quantity) * parseFloat(price);
+                totalInput.value = total.toFixed(2);
+            } else {
+                totalInput.value = '';
+            }
+            
+            calculateGrandTotal();
+        }
+
+        function calculateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('.total-input').forEach(input => {
+                if (input.value) {
+                    grandTotal += parseFloat(input.value);
+                }
+            });
+            document.getElementById('grandTotal').textContent = `$${grandTotal.toFixed(2)}`;
+        }
+    </script>
+}

@@ -1,0 +1,137 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard - Auto Ancillaries Limited";
+}
+
+<div class="hero-section bg-primary text-white p-5 rounded mb-4">
+    <div class="text-center">
+        <h1 class="display-4">🏭 Auto Ancillaries Limited</h1>
+        <p class="lead">Comprehensive Inventory and Order Management System</p>
+        <p class="fs-5">Streamlining distribution processes for two-wheeler and four-wheeler automobile ancillaries</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h2 class="text-primary">📦</h2>
+                <h5 class="card-title">Inventory Management</h5>
+                <p class="card-text">Track stock levels, manage warehouses, and monitor EOQ across all locations.</p>
+                <a href="/Inventory" class="btn btn-primary">View Inventory</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h2 class="text-success">🛒</h2>
+                <h5 class="card-title">Order Management</h5>
+                <p class="card-text">Process customer orders, manage priorities, and track order status.</p>
+                <a href="/Orders" class="btn btn-success">Manage Orders</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h2 class="text-warning">👥</h2>
+                <h5 class="card-title">Customer Portal</h5>
+                <p class="card-text">Customer registration, rating management, and account tracking.</p>
+                <a href="/CustomerPortal" class="btn btn-warning">Customer Portal</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h2 class="text-info">💰</h2>
+                <h5 class="card-title">Financial Management</h5>
+                <p class="card-text">Invoice generation, payment tracking, and financial reporting.</p>
+                <a href="/Financial" class="btn btn-info">View Financials</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">📊 System Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-primary">@Model.TotalProducts</h3>
+                        <p class="text-muted">Products</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-success">@Model.TotalWarehouses</h3>
+                        <p class="text-muted">Warehouses</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-warning">@Model.LowStockItems</h3>
+                        <p class="text-muted">Low Stock</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-info">@Model.TotalCustomers</h3>
+                        <p class="text-muted">Customers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">🚀 Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/Inventory" class="btn btn-outline-primary">Check Inventory</a>
+                    <a href="/Identity/Account/Register" class="btn btn-outline-success">Add Customer</a>
+                    <a href="#" class="btn btn-outline-warning">Create Order</a>
+                    <a href="#" class="btn btn-outline-info">Generate Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">📋 Key Features Implemented</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>✅ Completed Features:</h6>
+                        <ul class="list-unstyled">
+                            <li>✅ Database Models & Entity Framework</li>
+                            <li>✅ Multi-warehouse Inventory Tracking</li>
+                            <li>✅ Customer Authentication System</li>
+                            <li>✅ Product & Warehouse Management</li>
+                            <li>✅ EOQ & Reorder Point Calculations</li>
+                            <li>✅ Real-time Stock Level Monitoring</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>🔄 Next Phase Features:</h6>
+                        <ul class="list-unstyled">
+                            <li>🔄 Order Processing System</li>
+                            <li>🔄 Invoice Generation</li>
+                            <li>🔄 Customer Rating System</li>
+                            <li>🔄 Material Rejection Tracking</li>
+                            <li>🔄 Financial Reporting</li>
+                            <li>🔄 Production Status Integration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,112 @@
+@page
+@model AAL.Web.Pages.InventoryModel
+@{
+    ViewData["Title"] = "Inventory Management";
+}
+
+<div class="container">
+    <h1 class="display-4">Inventory Management</h1>
+    <p class="lead">View current stock levels across all warehouses</p>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Current Inventory Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Product Code</th>
+                                    <th>Product Name</th>
+                                    <th>Warehouse</th>
+                                    <th>Stock Quantity</th>
+                                    <th>Reorder Point</th>
+                                    <th>EOQ</th>
+                                    <th>Movement Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.InventoryItems)
+                                {
+                                    <tr class="@(item.QuantityInStock <= item.ReorderPoint ? "table-warning" : "")">
+                                        <td><strong>@item.Product.ProductCode</strong></td>
+                                        <td>@item.Product.ProductName</td>
+                                        <td>@item.Warehouse.Name</td>
+                                        <td>
+                                            <span class="badge bg-@(item.QuantityInStock <= item.ReorderPoint ? "warning" : "success")">
+                                                @item.QuantityInStock
+                                            </span>
+                                        </td>
+                                        <td>@item.ReorderPoint</td>
+                                        <td>@item.EconomicOrderQuantity</td>
+                                        <td>
+                                            <span class="badge bg-@(item.MovementType == AAL.Web.Models.MovementType.Fast ? "primary" : "secondary")">
+                                                @item.MovementType
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (item.QuantityInStock <= item.ReorderPoint)
+                                            {
+                                                <span class="badge bg-warning">⚠️ Reorder Required</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">✅ In Stock</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Inventory Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h3 class="text-primary">@Model.TotalProducts</h3>
+                                <p class="text-muted">Total Products</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h3 class="text-warning">@Model.LowStockItems</h3>
+                                <p class="text-muted">Low Stock Items</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Warehouses</h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var warehouse in Model.Warehouses)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><strong>@warehouse.Name</strong> - @warehouse.Location</span>
+                            <span class="badge bg-info">@warehouse.InventoryItems.Count items</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,264 @@
+@page
+@model FinancialModel
+@{
+    ViewData["Title"] = "Financial Management - AAL";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>💰 Financial Management</h2>
+            <div>
+                <a href="/Financial/ProcessPayment" class="btn btn-success">Process Payment</a>
+                <a href="/Financial/Reports" class="btn btn-outline-primary">Generate Reports</a>
+            </div>
+        </div>
+
+        <!-- Financial Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">$@Model.TotalRevenue.ToString("N0")</h3>
+                        <p class="mb-0">Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">$@Model.OutstandingAmount.ToString("N0")</h3>
+                        <p class="mb-0">Outstanding</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">$@Model.PaidAmount.ToString("N0")</h3>
+                        <p class="mb-0">Paid Amount</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-danger">@Model.OverdueInvoices</h3>
+                        <p class="mb-0">Overdue Invoices</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs" id="financialTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">
+                    📄 Invoices (@Model.Invoices.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">
+                    💳 Payments (@Model.Payments.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rejections-tab" data-bs-toggle="tab" data-bs-target="#rejections" type="button" role="tab">
+                    ❌ Material Rejections (@Model.MaterialRejections.Count)
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="financialTabContent">
+            <!-- Invoices Tab -->
+            <div class="tab-pane fade show active" id="invoices" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Customer</th>
+                                        <th>Order #</th>
+                                        <th>Date</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var invoice in Model.Invoices)
+                                    {
+                                        <tr class="@(invoice.Status == InvoiceStatus.Overdue ? "table-danger" : "")">
+                                            <td><strong>@invoice.InvoiceNumber</strong></td>
+                                            <td>
+                                                @invoice.Customer.FirstName @invoice.Customer.LastName
+                                                @if (!string.IsNullOrEmpty(invoice.Customer.CompanyName))
+                                                {
+                                                    <br><small class="text-muted">@invoice.Customer.CompanyName</small>
+                                                }
+                                            </td>
+                                            <td>@invoice.Order.OrderNumber</td>
+                                            <td>@invoice.InvoiceDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@invoice.DueDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-@(invoice.Status switch {
+                                                    InvoiceStatus.Paid => "success",
+                                                    InvoiceStatus.PartiallyPaid => "warning",
+                                                    InvoiceStatus.Overdue => "danger",
+                                                    _ => "secondary"
+                                                })">
+                                                    @invoice.Status
+                                                </span>
+                                            </td>
+                                            <td>$@invoice.TotalAmount.ToString("N2")</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="/Financial/Invoice/@invoice.InvoiceId" class="btn btn-sm btn-outline-primary">View</a>
+                                                    @if (invoice.Status != InvoiceStatus.Paid)
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-success" onclick="recordPayment(@invoice.InvoiceId)">Pay</button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div class="tab-pane fade" id="payments" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Payment #</th>
+                                        <th>Customer</th>
+                                        <th>Invoice #</th>
+                                        <th>Date</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                        <th>Reference</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.Payments)
+                                    {
+                                        <tr>
+                                            <td><strong>@payment.PaymentNumber</strong></td>
+                                            <td>@payment.Customer.FirstName @payment.Customer.LastName</td>
+                                            <td>@payment.Invoice.InvoiceNumber</td>
+                                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-secondary">@payment.PaymentMethod</span>
+                                            </td>
+                                            <td>$@payment.Amount.ToString("N2")</td>
+                                            <td>@payment.ReferenceNumber</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Rejections Tab -->
+            <div class="tab-pane fade" id="rejections" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Rejection #</th>
+                                        <th>Customer</th>
+                                        <th>Product</th>
+                                        <th>Date</th>
+                                        <th>Quantity</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rejection in Model.MaterialRejections)
+                                    {
+                                        <tr>
+                                            <td><strong>@rejection.RejectionNumber</strong></td>
+                                            <td>@rejection.Customer.FirstName @rejection.Customer.LastName</td>
+                                            <td>@rejection.Product.Name</td>
+                                            <td>@rejection.RejectionDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@rejection.RejectedQuantity</td>
+                                            <td>@rejection.Reason</td>
+                                            <td>
+                                                <span class="badge bg-@(rejection.Status switch {
+                                                    RejectionStatus.Resolved => "success",
+                                                    RejectionStatus.UnderInvestigation => "warning",
+                                                    _ => "danger"
+                                                })">
+                                                    @rejection.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewRejection(@rejection.RejectionId)">View</button>
+                                                    @if (rejection.Status != RejectionStatus.Resolved)
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-success" onclick="resolveRejection(@rejection.RejectionId)">Resolve</button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function recordPayment(invoiceId) {
+            // Redirect to payment form
+            window.location.href = `/Financial/ProcessPayment?invoiceId=${invoiceId}`;
+        }
+
+        function viewRejection(rejectionId) {
+            // Open rejection details modal or page
+            window.location.href = `/Financial/Rejection/${rejectionId}`;
+        }
+
+        function resolveRejection(rejectionId) {
+            if (confirm('Mark this rejection as resolved?')) {
+                fetch(`/api/rejections/${rejectionId}/resolve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error resolving rejection: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}

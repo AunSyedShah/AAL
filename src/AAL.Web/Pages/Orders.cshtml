@@ -1,0 +1,147 @@
+@page
+@model OrdersModel
+@{
+    ViewData["Title"] = "Order Management - AAL";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📋 Order Management</h2>
+    <a href="/Orders/Create" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create New Order
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">@Model.TotalOrders</h3>
+                <p class="mb-0">Total Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">@Model.PendingOrders</h3>
+                <p class="mb-0">Pending Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">@Model.CompletedOrders</h3>
+                <p class="mb-0">Completed Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger">@Model.RejectedOrders</h3>
+                <p class="mb-0">Rejected Orders</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Order List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                        <th>Warehouse</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.Orders)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@order.OrderNumber</strong>
+                            </td>
+                            <td>
+                                @order.Customer.FirstName @order.Customer.LastName
+                                @if (!string.IsNullOrEmpty(order.Customer.CompanyName))
+                                {
+                                    <br><small class="text-muted">@order.Customer.CompanyName</small>
+                                }
+                            </td>
+                            <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="badge bg-@(order.Priority switch {
+                                    AAL.Web.Models.OrderPriority.Urgent => "danger",
+                                    AAL.Web.Models.OrderPriority.High => "warning",
+                                    AAL.Web.Models.OrderPriority.Medium => "info",
+                                    _ => "secondary"
+                                })">
+                                    @order.Priority
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-@(order.Status switch {
+                                    AAL.Web.Models.OrderStatus.Confirmed => "success",
+                                    AAL.Web.Models.OrderStatus.Processing => "info",
+                                    AAL.Web.Models.OrderStatus.Shipped => "primary",
+                                    AAL.Web.Models.OrderStatus.Delivered => "success",
+                                    AAL.Web.Models.OrderStatus.Cancelled => "danger",
+                                    _ => "secondary"
+                                })">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td>$@order.TotalAmount.ToString("N2")</td>
+                            <td>@(order.Warehouse?.Name ?? "Not Assigned")</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="/Orders/Details/@order.OrderId" class="btn btn-sm btn-outline-primary">View</a>
+                                    <a href="/Orders/Edit/@order.OrderId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    @if (order.Status == AAL.Web.Models.OrderStatus.Pending)
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" onclick="processOrder(@order.OrderId)">Process</button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function processOrder(orderId) {
+            if (confirm('Are you sure you want to process this order?')) {
+                fetch(`/api/orders/${orderId}/process`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error processing order: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+}

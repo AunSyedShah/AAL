@@ -1,0 +1,205 @@
+@page
+@model CustomerPortalModel
+@{
+    ViewData["Title"] = "Customer Portal - AAL";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>👋 Welcome, @Model.CurrentCustomer.FirstName @Model.CurrentCustomer.LastName</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Company:</strong> @Model.CurrentCustomer.CompanyName<br>
+                        <strong>Customer Type:</strong> 
+                        <span class="badge bg-@(Model.CurrentCustomer.CustomerType == CustomerType.Exclusive ? "success" : "primary")">
+                            @Model.CurrentCustomer.CustomerType
+                        </span><br>
+                        <strong>Rating:</strong> 
+                        <span class="badge bg-@(Model.CurrentCustomer.Rating switch {
+                            CustomerRating.VIP => "danger",
+                            CustomerRating.Premium => "warning",
+                            CustomerRating.Preferred => "info",
+                            _ => "secondary"
+                        })">
+                            @Model.CurrentCustomer.Rating
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Credit Limit:</strong> $@Model.CurrentCustomer.CreditLimit.ToString("N2")<br>
+                        <strong>Outstanding Balance:</strong> $@Model.CurrentCustomer.OutstandingBalance.ToString("N2")<br>
+                        <strong>Available Credit:</strong> 
+                        <span class="text-@(Model.AvailableCredit > 0 ? "success" : "danger")">
+                            $@Model.AvailableCredit.ToString("N2")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6>📋 Recent Orders</h6>
+                <a href="/Orders/Create" class="btn btn-primary btn-sm">Place New Order</a>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentOrders.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model.RecentOrders)
+                                {
+                                    <tr>
+                                        <td>@order.OrderNumber</td>
+                                        <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            <span class="badge bg-@(order.Status switch {
+                                                OrderStatus.Confirmed => "success",
+                                                OrderStatus.Processing => "info",
+                                                OrderStatus.Shipped => "primary",
+                                                OrderStatus.Delivered => "success",
+                                                OrderStatus.Cancelled => "danger",
+                                                _ => "secondary"
+                                            })">
+                                                @order.Status
+                                            </span>
+                                        </td>
+                                        <td>$@order.TotalAmount.ToString("N2")</td>
+                                        <td>
+                                            <a href="/Orders/Track/@order.OrderId" class="btn btn-outline-primary btn-sm">Track</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No orders found. <a href="/Orders/Create">Place your first order</a></p>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6>📦 Current Inventory Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Warehouse</th>
+                                <th>Available Stock</th>
+                                <th>EOQ</th>
+                                <th>Reorder Point</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.InventoryStatus)
+                            {
+                                <tr class="@(item.QuantityInStock <= item.ReorderPoint ? "table-warning" : "")">
+                                    <td>@item.Product.Name</td>
+                                    <td>@item.Warehouse.Name</td>
+                                    <td>
+                                        @item.QuantityInStock
+                                        @if (item.QuantityInStock <= item.ReorderPoint)
+                                        {
+                                            <span class="badge bg-warning ms-1">Low Stock</span>
+                                        }
+                                    </td>
+                                    <td>@item.EconomicOrderQuantity</td>
+                                    <td>@item.ReorderPoint</td>
+                                    <td>$@item.Product.Price.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6>📊 Order Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">@Model.TotalOrders</h4>
+                        <small>Total Orders</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@Model.CompletedOrders</h4>
+                        <small>Completed</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-warning">@Model.PendingOrders</h4>
+                        <small>Pending</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-info">$@Model.TotalOrderValue.ToString("N0")</h4>
+                        <small>Total Value</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6>💰 Financial Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Total Paid:</strong> $@Model.TotalPaid.ToString("N2")
+                </div>
+                <div class="mb-2">
+                    <strong>Outstanding:</strong> $@Model.CurrentCustomer.OutstandingBalance.ToString("N2")
+                </div>
+                <div class="mb-2">
+                    <strong>Payment Rating:</strong>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="@(i <= Model.PaymentRating ? "text-warning" : "text-muted")">★</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6>🚀 Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/Orders/Create" class="btn btn-primary">Place New Order</a>
+                    <a href="/CustomerPortal/Orders" class="btn btn-outline-primary">View All Orders</a>
+                    <a href="/CustomerPortal/Invoices" class="btn btn-outline-secondary">View Invoices</a>
+                    <a href="/CustomerPortal/Payments" class="btn btn-outline-success">Payment History</a>
+                    <a href="/Production/Status" class="btn btn-outline-info">Production Status</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
