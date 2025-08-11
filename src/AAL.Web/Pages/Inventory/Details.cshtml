@@ -1,0 +1,134 @@
+@page
+@model DetailsInventoryModel
+@{
+    ViewData["Title"] = "Inventory Item Details";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Inventory Item Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Product Code:</dt>
+                        <dd class="col-sm-9"><strong>@Model.InventoryItem.Product.ProductCode</strong></dd>
+
+                        <dt class="col-sm-3">Product Name:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.Product.ProductName</dd>
+
+                        <dt class="col-sm-3">Description:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.Product.Description</dd>
+
+                        <dt class="col-sm-3">Unit Price:</dt>
+                        <dd class="col-sm-9">$@Model.InventoryItem.Product.UnitPrice.ToString("N2")</dd>
+
+                        <dt class="col-sm-3">Warehouse:</dt>
+                        <dd class="col-sm-9">
+                            <strong>@Model.InventoryItem.Warehouse.Name</strong><br/>
+                            <small class="text-muted">@Model.InventoryItem.Warehouse.Location</small><br/>
+                            <small class="text-muted">@Model.InventoryItem.Warehouse.Address</small>
+                        </dd>
+
+                        <dt class="col-sm-3">Current Stock:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-@(Model.InventoryItem.QuantityInStock <= Model.InventoryItem.ReorderPoint ? "warning" : "success") fs-6">
+                                @Model.InventoryItem.QuantityInStock @Model.InventoryItem.Product.Unit
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Reorder Point:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.ReorderPoint @Model.InventoryItem.Product.Unit</dd>
+
+                        <dt class="col-sm-3">Economic Order Quantity:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.EconomicOrderQuantity @Model.InventoryItem.Product.Unit</dd>
+
+                        <dt class="col-sm-3">Movement Type:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-@(Model.InventoryItem.MovementType == AAL.Web.Models.MovementType.Fast ? "primary" : "secondary")">
+                                @Model.InventoryItem.MovementType Moving
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Category:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.Category</dd>
+
+                        <dt class="col-sm-3">Last Updated:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    </dl>
+
+                    <div class="mb-3">
+                        <a asp-page="./Edit" asp-route-id="@Model.InventoryItem.InventoryItemId" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-page="../Inventory" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Inventory
+                        </a>
+                        <a asp-page="./Delete" asp-route-id="@Model.InventoryItem.InventoryItemId" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6>Inventory Status</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.InventoryItem.QuantityInStock <= Model.InventoryItem.ReorderPoint)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Reorder Required!</strong><br/>
+                            Current stock (@Model.InventoryItem.QuantityInStock) is at or below reorder point (@Model.InventoryItem.ReorderPoint).
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Stock Level Good</strong><br/>
+                            Current stock is @(Model.InventoryItem.QuantityInStock - Model.InventoryItem.ReorderPoint) units above reorder point.
+                        </div>
+                    }
+                    
+                    <h6>Stock Value</h6>
+                    <p class="fs-5">
+                        <strong>$@((Model.InventoryItem.QuantityInStock * Model.InventoryItem.Product.UnitPrice).ToString("N2"))</strong>
+                    </p>
+                    
+                    <small class="text-muted">
+                        (@Model.InventoryItem.QuantityInStock units × $@Model.InventoryItem.Product.UnitPrice.ToString("N2"))
+                    </small>
+                </div>
+            </div>
+
+            @if (Model.RecentOrders.Any())
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6>Recent Orders</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var order in Model.RecentOrders.Take(5))
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <small><strong>@order.OrderNumber</strong></small><br/>
+                                    <small class="text-muted">@order.OrderDate.ToString("yyyy-MM-dd")</small>
+                                </div>
+                                <span class="badge bg-@(order.Status == OrderStatus.Delivered ? "success" : "primary")">
+                                    @order.Status
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

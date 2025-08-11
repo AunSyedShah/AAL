@@ -206,6 +206,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW52ZW50b3J5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/workspaces/AAL/src/AAL.Web/Pages/Inventory/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW52ZW50b3J5L0NyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspaces/AAL/src/AAL.Web/Pages/Inventory/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW52ZW50b3J5L0RlbGV0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspaces/AAL/src/AAL.Web/Pages/Inventory/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW52ZW50b3J5L0RldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspaces/AAL/src/AAL.Web/Pages/Inventory/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW52ZW50b3J5L0VkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [/workspaces/AAL/src/AAL.Web/Pages/Orders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvT3JkZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 

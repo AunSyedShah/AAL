@@ -1,0 +1,132 @@
+@page
+@model EditInventoryModel
+@{
+    ViewData["Title"] = "Edit Inventory Item";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-edit"></i> Edit Inventory Item</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="InventoryItem.InventoryItemId" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Product</label>
+                                    <input type="text" class="form-control" value="@Model.ProductDisplay" readonly />
+                                    <input type="hidden" asp-for="InventoryItem.ProductId" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Warehouse</label>
+                                    <input type="text" class="form-control" value="@Model.WarehouseDisplay" readonly />
+                                    <input type="hidden" asp-for="InventoryItem.WarehouseId" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.QuantityInStock" class="form-label">Quantity in Stock</label>
+                                    <input asp-for="InventoryItem.QuantityInStock" type="number" class="form-control" min="0" required />
+                                    <span asp-validation-for="InventoryItem.QuantityInStock" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.ReorderPoint" class="form-label">Reorder Point</label>
+                                    <input asp-for="InventoryItem.ReorderPoint" type="number" class="form-control" min="0" required />
+                                    <span asp-validation-for="InventoryItem.ReorderPoint" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.EconomicOrderQuantity" class="form-label">Economic Order Quantity</label>
+                                    <input asp-for="InventoryItem.EconomicOrderQuantity" type="number" class="form-control" min="0" required />
+                                    <span asp-validation-for="InventoryItem.EconomicOrderQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.Category" class="form-label">Category</label>
+                                    <select asp-for="InventoryItem.Category" class="form-select" asp-items="Html.GetEnumSelectList<AAL.Web.Models.InventoryCategory>()">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.MovementType" class="form-label">Movement Type</label>
+                                    <select asp-for="InventoryItem.MovementType" class="form-select" asp-items="Html.GetEnumSelectList<AAL.Web.Models.MovementType>()">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Last Updated:</strong> @Model.InventoryItem.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss")
+                        </div>
+
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Inventory Item
+                            </button>
+                            <a asp-page="../Inventory" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Inventory
+                            </a>
+                            <a asp-page="./Delete" asp-route-id="@Model.InventoryItem.InventoryItemId" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6>Inventory Status</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.InventoryItem.QuantityInStock <= Model.InventoryItem.ReorderPoint)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Reorder Required!</strong><br/>
+                            Current stock is at or below reorder point.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Stock Level Good</strong><br/>
+                            Current stock is above reorder point.
+                        </div>
+                    }
+                    
+                    <ul class="list-unstyled">
+                        <li><strong>Movement Type:</strong> <span class="badge bg-@(Model.InventoryItem.MovementType == AAL.Web.Models.MovementType.Fast ? "primary" : "secondary")">@Model.InventoryItem.MovementType</span></li>
+                        <li><strong>Category:</strong> @Model.InventoryItem.Category</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

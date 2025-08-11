@@ -1,0 +1,97 @@
+@page
+@model CreateInventoryModel
+@{
+    ViewData["Title"] = "Create Inventory Item";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-plus"></i> Create New Inventory Item</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.ProductId" class="form-label">Product</label>
+                                    <select asp-for="InventoryItem.ProductId" class="form-select" asp-items="Model.ProductSelectList" required>
+                                        <option value="">Select Product</option>
+                                    </select>
+                                    <span asp-validation-for="InventoryItem.ProductId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.WarehouseId" class="form-label">Warehouse</label>
+                                    <select asp-for="InventoryItem.WarehouseId" class="form-select" asp-items="Model.WarehouseSelectList" required>
+                                        <option value="">Select Warehouse</option>
+                                    </select>
+                                    <span asp-validation-for="InventoryItem.WarehouseId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.QuantityInStock" class="form-label">Quantity in Stock</label>
+                                    <input asp-for="InventoryItem.QuantityInStock" type="number" class="form-control" min="0" required />
+                                    <span asp-validation-for="InventoryItem.QuantityInStock" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.ReorderPoint" class="form-label">Reorder Point</label>
+                                    <input asp-for="InventoryItem.ReorderPoint" type="number" class="form-control" min="0" required />
+                                    <span asp-validation-for="InventoryItem.ReorderPoint" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.EconomicOrderQuantity" class="form-label">Economic Order Quantity</label>
+                                    <input asp-for="InventoryItem.EconomicOrderQuantity" type="number" class="form-control" min="0" required />
+                                    <span asp-validation-for="InventoryItem.EconomicOrderQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.Category" class="form-label">Category</label>
+                                    <select asp-for="InventoryItem.Category" class="form-select" asp-items="Html.GetEnumSelectList<AAL.Web.Models.InventoryCategory>()">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="InventoryItem.MovementType" class="form-label">Movement Type</label>
+                                    <select asp-for="InventoryItem.MovementType" class="form-select" asp-items="Html.GetEnumSelectList<AAL.Web.Models.MovementType>()">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Inventory Item
+                            </button>
+                            <a asp-page="../Inventory" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Inventory
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,105 @@
+@page
+@model DeleteInventoryModel
+@{
+    ViewData["Title"] = "Delete Inventory Item";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-trash"></i> Delete Inventory Item</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning!</strong> Are you sure you want to delete this inventory item? This action cannot be undone.
+                    </div>
+
+                    <dl class="row">
+                        <dt class="col-sm-3">Product:</dt>
+                        <dd class="col-sm-9">
+                            <strong>@Model.InventoryItem.Product.ProductCode</strong> - @Model.InventoryItem.Product.ProductName
+                        </dd>
+
+                        <dt class="col-sm-3">Warehouse:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.Warehouse.Name - @Model.InventoryItem.Warehouse.Location</dd>
+
+                        <dt class="col-sm-3">Current Stock:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-@(Model.InventoryItem.QuantityInStock <= Model.InventoryItem.ReorderPoint ? "warning" : "success") fs-6">
+                                @Model.InventoryItem.QuantityInStock units
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Reorder Point:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.ReorderPoint units</dd>
+
+                        <dt class="col-sm-3">EOQ:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.EconomicOrderQuantity units</dd>
+
+                        <dt class="col-sm-3">Movement Type:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-@(Model.InventoryItem.MovementType == AAL.Web.Models.MovementType.Fast ? "primary" : "secondary")">
+                                @Model.InventoryItem.MovementType
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Category:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.Category</dd>
+
+                        <dt class="col-sm-3">Last Updated:</dt>
+                        <dd class="col-sm-9">@Model.InventoryItem.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    </dl>
+
+                    <form method="post">
+                        <input type="hidden" asp-for="InventoryItem.InventoryItemId" />
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Yes, Delete This Item
+                            </button>
+                            <a asp-page="../Inventory" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6>Deletion Impact</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.InventoryItem.QuantityInStock > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <strong>Stock Will Be Lost!</strong><br/>
+                            This item has @Model.InventoryItem.QuantityInStock units in stock that will be removed from the system.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>No Stock Impact</strong><br/>
+                            This item has no current stock, so deletion will not affect inventory levels.
+                        </div>
+                    }
+
+                    @if (Model.HasActiveOrders)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Active Orders Exist!</strong><br/>
+                            There may be active orders that reference this inventory item.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

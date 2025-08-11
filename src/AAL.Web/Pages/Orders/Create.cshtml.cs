@@ -108,8 +108,14 @@ namespace AAL.Web.Pages.Orders
         private async Task LoadSelectLists()
         {
             var customers = await _context.Users
-                .Where(c => c.EmailConfirmed)
-                .Select(c => new { c.Id, Name = $"{c.FirstName} {c.LastName} ({c.CompanyName})" })
+                .Select(c => new { 
+                    c.Id, 
+                    Name = !string.IsNullOrEmpty(c.FirstName) && !string.IsNullOrEmpty(c.LastName) 
+                        ? $"{c.FirstName} {c.LastName} ({c.CompanyName})"
+                        : !string.IsNullOrEmpty(c.CompanyName) 
+                            ? $"{c.CompanyName} ({c.Email})"
+                            : c.Email
+                })
                 .ToListAsync();
 
             CustomerSelectList = new SelectList(customers, "Id", "Name");

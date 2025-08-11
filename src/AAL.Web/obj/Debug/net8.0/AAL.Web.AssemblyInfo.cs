@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AAL.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf0c655bebea78aa5fd77dcc2ef308c26bfc0296")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+94ec5fdbdeb535cc492b89bf0a7af4bd7be35346")]
 [assembly: System.Reflection.AssemblyProductAttribute("AAL.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AAL.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
